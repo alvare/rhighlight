@@ -1,0 +1,10 @@
+[package]
+name = "rhighlight"
+version = "0.1.0"
+authors = ["clrnd <welcometothechango@gmail.com>"]
+description = "Simple higlighter for regex patterns."
+
+[dependencies]
+regex = "1"
+clap = "2"
+colored = "1.6"
