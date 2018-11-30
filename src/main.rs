@@ -3,8 +3,8 @@ extern crate clap;
 extern crate colored;
 
 use std::io;
-use std::io::Write;
-use regex::{Regex, Captures};
+use std::io::{Write, BufRead};
+use regex::bytes::{Regex, Captures};
 use clap::{Arg, App};
 use colored::*;
 
@@ -20,23 +20,30 @@ fn main() {
         .get_matches();
 
     let pattern = matches.value_of("PATTERN").unwrap();
-    //let re = Regex::new(pattern).unwrap();
+    let re = Regex::new(pattern).unwrap();
+    let blah = pattern.red().to_string();
+    let replacement = blah.as_bytes();
 
-    let mut input = String::new();
-    loop {
-        input.clear();
-        match io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                //let result = re.replace_all(input.as_str(), |cap: &Captures| {
-                //    cap[0].red().to_string()
-                //});
-                let result = input.replace(pattern, &pattern.red().to_string());
-
-                io::stdout().write(result.as_bytes()).unwrap();
-
-                if input.is_empty() { break }
+    let mut input = Vec::new();
+    let stdin = io::stdin();
+    let mut handle = stdin.lock();
+    while handle.read_until(b'\n', &mut input).unwrap() > 0 {
+        {
+            //let result = re.replace_all(input.as_str(), |cap: &Captures| {
+            //    cap[0].red().to_string()
+            //});
+            let matches = re.find_iter(&input);
+            let mut output = Vec::with_capacity(input.len() + input.len()/4);
+            let mut last_match = 0;
+            for mat in matches {
+                output.extend_from_slice(&input[last_match..mat.start()]);
+                output.extend_from_slice(&replacement);
+                last_match = mat.end();
             }
-            Err(error) => println!("IO error: {}", error),
+            output.extend_from_slice(&input[last_match..]);
+
+            io::stdout().write(&output).unwrap();
         }
+        input.clear();
     }
 }
