@@ -20,23 +20,17 @@ fn main() {
         .get_matches();
 
     let pattern = matches.value_of("PATTERN").unwrap();
-    //let re = Regex::new(pattern).unwrap();
+    let re = Regex::new(pattern).unwrap();
 
     let mut input = String::new();
-    loop {
-        input.clear();
-        match io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                //let result = re.replace_all(input.as_str(), |cap: &Captures| {
-                //    cap[0].red().to_string()
-                //});
-                let result = input.replace(pattern, &pattern.red().to_string());
+    while io::stdin().read_line(&mut input).unwrap() > 0 {
+        {
+            let result = re.replace_all(input.as_str(), |cap: &Captures| {
+                cap[0].red().to_string()
+            });
 
-                io::stdout().write(result.as_bytes()).unwrap();
-
-                if input.is_empty() { break }
-            }
-            Err(error) => println!("IO error: {}", error),
+            io::stdout().write(result.as_bytes()).unwrap();
         }
+        input.clear();
     }
 }
